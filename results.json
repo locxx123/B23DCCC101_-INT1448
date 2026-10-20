@@ -1,0 +1,106 @@
+{
+  "TH1": {
+    "TRƯỚC (naive)": {
+      "ngân hàng tắt": "ERR {\"error\":\"UND_ERR_SOCKET\"} trong 29ms",
+      "GET /fees ngay sau đó": "ERR trong 3ms",
+      "Fee Service còn sống": false,
+      "ngân hàng bật lại (không restart Fee)": "ERR {\"error\":\"ECONNREFUSED\"} trong 4ms"
+    },
+    "SAU": {
+      "ngân hàng tắt": "503 {\"error\":\"Không kết nối được ngân hàng (ECONNREFUSED)\",\"paymentId\":\"P1\",\"status\":\"FAILED\"} trong 806ms",
+      "GET /fees ngay sau đó": "200 trong 3ms",
+      "Fee Service còn sống": true,
+      "ngân hàng bật lại (không restart Fee)": "201 PAID trong 12ms"
+    },
+    "SAU, BANK_URL=:4999": {
+      "ngân hàng tắt": "503 {\"error\":\"Không kết nối được ngân hàng (ECONNREFUSED)\",\"paymentId\":\"P1\",\"status\":\"FAILED\"} trong 792ms",
+      "GET /fees ngay sau đó": "200 trong 7ms",
+      "Fee Service còn sống": true,
+      "ngân hàng bật lại (không restart Fee)": "201 PAID trong 9ms"
+    }
+  },
+  "TH2": {
+    "TRƯỚC (naive)": {
+      "1 thanh toán": "201 PAID trong 5073ms",
+      "20 thanh toán đồng thời": "{\"201 PAID\":20}",
+      "thời gian lâu nhất / cả đợt": "5020ms / 5025ms",
+      "GET /fees khi đang chờ (ms)": "200:2, 200:3, 200:2, 200:3, 200:8"
+    },
+    "SAU": {
+      "1 thanh toán": "504 PENDING trong 3030ms",
+      "20 thanh toán đồng thời": "{\"504 PENDING\":20}",
+      "thời gian lâu nhất / cả đợt": "3031ms / 3036ms",
+      "GET /fees khi đang chờ (ms)": "200:3, 200:3, 200:3, 200:3, 200:4"
+    }
+  },
+  "TH3": {
+    "TRƯỚC (naive, mỗi lần 1 kết nối)": {
+      "thành công / 200": 200,
+      "tổng thời gian": "143ms",
+      "connections sau 200 lệnh": 201,
+      "sau 6s nhàn rỗi, 5 lệnh": "{\"201\":5}",
+      "connections cuối": 207,
+      "duplicates": 0
+    },
+    "SAU (keep-alive pool)": {
+      "thành công / 200": 200,
+      "tổng thời gian": "107ms",
+      "connections sau 200 lệnh": 11,
+      "sau 6s nhàn rỗi, 5 lệnh": "{\"201\":5}",
+      "connections cuối": 17,
+      "duplicates": 0
+    }
+  },
+  "TH4": {
+    "(a) DROP_RATE=0.3 — TRƯỚC (naive)": {
+      "PAID / 60": 7,
+      "phân loại phản hồi": "{\"201 PAID\":7,\"ERR UND_ERR_SOCKET\":1,\"ERR ECONNREFUSED\":52}",
+      "thời gian lâu nhất": "32ms",
+      "bank /stats": "{\"connections\":9,\"requests\":8,\"charges\":8,\"duplicates\":0}",
+      "công nợ khớp PAID": "Fee Service đã sập",
+      "Fee Service còn sống": false
+    },
+    "(a) DROP_RATE=0.3 — thử lại KHÔNG có Idempotency-Key": {
+      "PAID / 60": 60,
+      "phân loại phản hồi": "{\"201 PAID\":60}",
+      "thời gian lâu nhất": "395ms",
+      "bank /stats": "{\"connections\":22,\"requests\":79,\"charges\":79,\"duplicates\":19}",
+      "công nợ khớp PAID": "đúng (giảm 6.000.000đ = 60 lệnh PAID)",
+      "Fee Service còn sống": true
+    },
+    "(a) DROP_RATE=0.3 — SAU": {
+      "PAID / 60": 60,
+      "phân loại phản hồi": "{\"201 PAID\":60}",
+      "thời gian lâu nhất": "390ms",
+      "bank /stats": "{\"connections\":27,\"requests\":84,\"charges\":60,\"duplicates\":0}",
+      "công nợ khớp PAID": "đúng (giảm 6.000.000đ = 60 lệnh PAID)",
+      "Fee Service còn sống": true
+    },
+    "(b) FAIL_RATE=0.3 — TRƯỚC (naive)": {
+      "PAID / 60": 44,
+      "phân loại phản hồi": "{\"201 PAID\":44,\"500 FAILED\":16}",
+      "thời gian lâu nhất": "28ms",
+      "bank /stats": "{\"connections\":61,\"requests\":60,\"charges\":44,\"duplicates\":0}",
+      "công nợ khớp PAID": "đúng (giảm 4.400.000đ = 44 lệnh PAID)",
+      "Fee Service còn sống": true
+    },
+    "(b) FAIL_RATE=0.3 — SAU": {
+      "PAID / 60": 60,
+      "phân loại phản hồi": "{\"201 PAID\":60}",
+      "thời gian lâu nhất": "826ms",
+      "bank /stats": "{\"connections\":2,\"requests\":75,\"charges\":60,\"duplicates\":0}",
+      "công nợ khớp PAID": "đúng (giảm 6.000.000đ = 60 lệnh PAID)",
+      "Fee Service còn sống": true
+    },
+    "(c) 25.000.000đ — TRƯỚC (naive)": {
+      "phản hồi": "402 {\"error\":\"Vượt hạn mức 20.000.000đ\",\"paymentId\":\"P1\",\"status\":\"FAILED\"} trong 35ms",
+      "bank requests": 1,
+      "bank charges": 0
+    },
+    "(c) 25.000.000đ — SAU": {
+      "phản hồi": "402 {\"error\":\"Vượt hạn mức 20.000.000đ\",\"paymentId\":\"P1\",\"status\":\"FAILED\"} trong 31ms",
+      "bank requests": 1,
+      "bank charges": 0
+    }
+  }
+}

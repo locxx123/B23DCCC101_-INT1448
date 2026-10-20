@@ -1,0 +1,182 @@
+{
+  "info": {
+    "name": "Lab 3 - Ket noi service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Fee - xem cong no SV1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4001/students/1/fees",
+          "host": [
+            "localhost"
+          ],
+          "port": "4001",
+          "path": [
+            "students",
+            "1",
+            "fees"
+          ],
+          "protocol": "http"
+        }
+      }
+    },
+    {
+      "name": "Fee - thanh toan 100.000d",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4001/students/1/payments",
+          "host": [
+            "localhost"
+          ],
+          "port": "4001",
+          "path": [
+            "students",
+            "1",
+            "payments"
+          ],
+          "protocol": "http"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":100000}"
+        }
+      }
+    },
+    {
+      "name": "Fee - thanh toan 25.000.000d (402)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4001/students/1/payments",
+          "host": [
+            "localhost"
+          ],
+          "port": "4001",
+          "path": [
+            "students",
+            "1",
+            "payments"
+          ],
+          "protocol": "http"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":25000000}"
+        }
+      }
+    },
+    {
+      "name": "Fee - thanh toan vuot cong no SV3 (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4001/students/3/payments",
+          "host": [
+            "localhost"
+          ],
+          "port": "4001",
+          "path": [
+            "students",
+            "3",
+            "payments"
+          ],
+          "protocol": "http"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":5000000}"
+        }
+      }
+    },
+    {
+      "name": "Fee - danh sach lenh",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4001/payments",
+          "host": [
+            "localhost"
+          ],
+          "port": "4001",
+          "path": [
+            "payments"
+          ],
+          "protocol": "http"
+        }
+      }
+    },
+    {
+      "name": "Bank - charge co Idempotency-Key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "TEST-1"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4002/charges",
+          "host": [
+            "localhost"
+          ],
+          "port": "4002",
+          "path": [
+            "charges"
+          ],
+          "protocol": "http"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"reference\":\"TEST-1\",\"amount\":1000}"
+        }
+      }
+    },
+    {
+      "name": "Bank - stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4002/stats",
+          "host": [
+            "localhost"
+          ],
+          "port": "4002",
+          "path": [
+            "stats"
+          ],
+          "protocol": "http"
+        }
+      }
+    }
+  ]
+}

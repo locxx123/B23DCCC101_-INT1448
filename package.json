@@ -1,0 +1,15 @@
+{
+  "name": "lab3-ket-noi-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lab 3 - Kết nối và duy trì kết nối giữa các service (Fee Service + Bank giả lập)",
+  "scripts": {
+    "bank": "node src/bank.js",
+    "fee": "node src/fee-service.js",
+    "scenarios": "node scripts/scenarios.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

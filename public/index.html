@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thanh toán học phí</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #fff; --text: #1d2330; --muted: #6b7280; --border: #e3e6eb;
+    --accent: #2f5bea; --accent-soft: #e8eefe;
+    --ok: #15803d; --ok-soft: #dcfce7; --warn: #b45309; --warn-soft: #fef3c7;
+    --err: #b91c1c; --err-soft: #fee2e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --panel: #1b1f27; --text: #e6e8ec; --muted: #9aa3b2; --border: #2a303b;
+      --accent: #7b9cff; --accent-soft: #232c45;
+      --ok: #4ade80; --ok-soft: #14301f; --warn: #fbbf24; --warn-soft: #3a2e10;
+      --err: #f87171; --err-soft: #3b1717;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 17px; margin: 0; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; }
+  .pill { padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--muted); }
+  .dot.up { background: var(--ok); } .dot.down { background: var(--err); }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .full { grid-column: 1 / -1; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+  h2 { font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .students { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 560px) { .students { grid-template-columns: 1fr; } }
+  .student { border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; background: transparent; color: inherit; text-align: left; font: inherit; }
+  .student.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .student .name { color: var(--muted); font-size: 13px; }
+  .student .debt { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .student .pending { font-size: 12px; color: var(--warn); min-height: 18px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  input, select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+  .row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 110px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; }
+  .chip { border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 999px; padding: 3px 10px; cursor: pointer; font: inherit; font-size: 12px; }
+  button.primary { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 9px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+  button.primary:disabled { opacity: .5; cursor: wait; }
+  .result { margin-top: 14px; border-radius: 8px; padding: 12px; background: var(--bg); border: 1px solid var(--border); min-height: 70px; }
+  .result .head { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: var(--muted); }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+  .PAID, .s2xx { background: var(--ok-soft); color: var(--ok); }
+  .PENDING, .PROCESSING, .s504 { background: var(--warn-soft); color: var(--warn); }
+  .FAILED, .s4xx, .s5xx, .sERR { background: var(--err-soft); color: var(--err); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  .stat .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat.bad .v { color: var(--err); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .summary { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  progress { width: 100%; height: 8px; margin-top: 12px; accent-color: var(--accent); }
+  .table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.err { color: var(--muted); white-space: normal; min-width: 200px; }
+  .counts { display: flex; gap: 6px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Thanh toán học phí</h1>
+  <div class="meta">
+    <span class="pill" id="mode">…</span>
+    <span><span class="dot" id="bankDot"></span>Ngân hàng <code id="bankUrl"></code> <span id="bankState"></span></span>
+  </div>
+</header>
+
+<main>
+  <section class="full">
+    <h2>Công nợ sinh viên</h2>
+    <div class="students" id="students"></div>
+  </section>
+
+  <section>
+    <h2>Thanh toán</h2>
+    <div class="row">
+      <div><label for="sid">Sinh viên</label>
+        <select id="sid"><option value="1">Sinh viên 1</option><option value="2">Sinh viên 2</option><option value="3">Sinh viên 3</option></select></div>
+      <div><label for="amount">Số tiền (đ)</label><input id="amount" type="number" min="1" step="1000" value="100000"></div>
+      <button class="primary" id="payBtn">Thanh toán</button>
+    </div>
+    <div class="chips">
+      <button class="chip" data-amt="100000">100.000</button>
+      <button class="chip" data-amt="1000000">1.000.000</button>
+      <button class="chip" data-amt="25000000">25.000.000 (vượt hạn mức)</button>
+      <button class="chip" data-amt="0">0 (không hợp lệ)</button>
+    </div>
+    <div class="result" id="result"><pre>Chưa có thanh toán nào.</pre></div>
+  </section>
+
+  <section>
+    <h2>Ngân hàng — /stats</h2>
+    <div class="stats">
+      <div class="stat"><div class="v" id="st-connections">–</div><div class="k">connections (TCP mới)</div></div>
+      <div class="stat"><div class="v" id="st-requests">–</div><div class="k">requests</div></div>
+      <div class="stat"><div class="v" id="st-charges">–</div><div class="k">charges (đã trừ tiền)</div></div>
+      <div class="stat" id="dupBox"><div class="v" id="st-duplicates">–</div><div class="k">duplicates (phải = 0)</div></div>
+    </div>
+    <p class="hint">Đổi hành vi ngân hàng: dừng rồi chạy lại với <code>DELAY_MS=5000</code>, <code>DROP_RATE=0.3</code> hoặc <code>FAIL_RATE=0.3</code>. Thông tin trên trang tự cập nhật mỗi giây.</p>
+
+    <h2 style="margin-top:18px">Gửi hàng loạt</h2>
+    <div class="row">
+      <div><label for="bN">Số lệnh</label><input id="bN" type="number" min="1" value="200"></div>
+      <div><label for="bC">Đồng thời</label><input id="bC" type="number" min="1" value="10"></div>
+      <div><label for="bA">Mỗi lệnh (đ)</label><input id="bA" type="number" min="1" value="1000"></div>
+      <button class="primary" id="batchBtn">Chạy</button>
+    </div>
+    <progress id="bProg" value="0" max="1" hidden></progress>
+    <div class="summary" id="bSummary"></div>
+  </section>
+
+  <section class="full">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <h2 style="margin:0">Lệnh thanh toán</h2>
+      <div class="counts" id="counts"></div>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead><tr><th>Mã</th><th>SV</th><th style="text-align:right">Số tiền</th><th>Trạng thái</th><th style="text-align:right">Lần gọi</th><th>chargeId / lỗi</th><th>Tạo lúc</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const vnd = (n) => Number(n).toLocaleString('vi-VN') + 'đ';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const codeClass = (c) => c === 'ERR' ? 'sERR' : c === 504 ? 's504' : `s${String(c)[0]}xx`;
+let selected = '1';
+
+async function getJson(url) {
+  const r = await fetch(url, { signal: AbortSignal.timeout(2000) });
+  return r.json();
+}
+
+async function pay(studentId, amount) {
+  const t0 = performance.now();
+  try {
+    const r = await fetch(`/students/${studentId}/payments`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount }),
+    });
+    return { code: r.status, body: await r.json().catch(() => null), ms: Math.round(performance.now() - t0) };
+  } catch (e) {
+    return { code: 'ERR', body: { error: 'Không gọi được Fee Service: ' + e.message }, ms: Math.round(performance.now() - t0) };
+  }
+}
+
+// ---- Sinh viên ----
+async function refreshStudents() {
+  const html = [];
+  for (const id of ['1', '2', '3']) {
+    try {
+      const s = await getJson(`/students/${id}/fees`);
+      html.push(`<button class="student ${id === selected ? 'active' : ''}" data-id="${id}">
+        <div class="name">Sinh viên ${id}</div>
+        <div class="debt">${vnd(s.debt)}</div>
+        <div class="pending">${s.pendingAmount ? 'Đang chờ xử lý: ' + vnd(s.pendingAmount) : ''}</div></button>`);
+    } catch {
+      html.push(`<div class="student"><div class="name">Sinh viên ${id}</div><div class="debt">—</div><div class="pending">Fee Service không phản hồi</div></div>`);
+    }
+  }
+  $('students').innerHTML = html.join('');
+}
+$('students').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-id]');
+  if (!b) return;
+  selected = b.dataset.id;
+  $('sid').value = selected;
+  refreshStudents();
+});
+$('sid').addEventListener('change', (e) => { selected = e.target.value; refreshStudents(); });
+
+// ---- Thanh toán đơn ----
+document.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => { $('amount').value = c.dataset.amt; }));
+$('payBtn').addEventListener('click', async () => {
+  $('payBtn').disabled = true;
+  $('result').innerHTML = '<pre>Đang gọi…</pre>';
+  const r = await pay($('sid').value, Number($('amount').value));
+  const st = r.body?.status;
+  $('result').innerHTML = `<div class="head">
+      <span class="badge ${codeClass(r.code)}">HTTP ${r.code}</span>
+      ${st ? `<span class="badge ${st}">${st}</span>` : ''}
+      <span style="color:var(--muted)">${r.ms} ms</span></div>
+    <pre>${esc(JSON.stringify(r.body, null, 2))}</pre>`;
+  $('payBtn').disabled = false;
+  tick();
+});
+
+// ---- Gửi hàng loạt ----
+$('batchBtn').addEventListener('click', async () => {
+  const n = Number($('bN').value), conc = Number($('bC').value), amount = Number($('bA').value), sid = $('sid').value;
+  const before = await getJson('/ui/bank-stats').catch(() => ({}));
+  $('batchBtn').disabled = true;
+  $('bProg').hidden = false; $('bProg').max = n; $('bProg').value = 0;
+  $('bSummary').innerHTML = '';
+  const res = []; let next = 0; const t0 = performance.now();
+  await Promise.all(Array.from({ length: conc }, async () => {
+    while (next < n) { next++; res.push(await pay(sid, amount)); $('bProg').value = res.length; }
+  }));
+  const total = Math.round(performance.now() - t0);
+  const after = await getJson('/ui/bank-stats').catch(() => ({}));
+  const groups = {};
+  for (const r of res) { const k = `${r.code} ${r.body?.status || ''}`.trim(); groups[k] = (groups[k] || 0) + 1; }
+  const tag = (cls, text) => `<span class="badge ${cls}">${text}</span>`;
+  $('bSummary').innerHTML =
+    Object.entries(groups).map(([k, v]) => tag(codeClass(Number(k.split(' ')[0]) || 'ERR'), `${k}: ${v}`)).join('') +
+    tag('', `tổng ${total} ms`) + tag('', `lâu nhất ${Math.max(...res.map((r) => r.ms))} ms`) +
+    (after.up && before.up ? tag('', `+${after.connections - before.connections} kết nối TCP`) : '');
+  $('batchBtn').disabled = false;
+});
+
+// ---- Ngân hàng + danh sách lệnh ----
+async function refreshBank() {
+  const s = await getJson('/ui/bank-stats').catch(() => ({ up: false }));
+  $('bankDot').className = 'dot ' + (s.up ? 'up' : 'down');
+  $('bankState').textContent = s.up ? '' : '(không kết nối được)';
+  for (const k of ['connections', 'requests', 'charges', 'duplicates']) $('st-' + k).textContent = s.up ? s[k] : '–';
+  $('dupBox').classList.toggle('bad', s.up && s.duplicates > 0);
+}
+async function refreshPayments() {
+  const data = await getJson('/payments').catch(() => null);
+  if (!data) return;
+  $('counts').innerHTML = Object.entries(data.summary).map(([k, v]) => `<span class="badge ${k}">${k}: ${v}</span>`).join('');
+  $('rows').innerHTML = data.payments.slice(-200).reverse().map((p) => `<tr>
+    <td>${p.id}</td><td>${p.studentId}</td><td class="num">${vnd(p.amount)}</td>
+    <td><span class="badge ${p.status}">${p.status}</span></td><td class="num">${p.attempts}</td>
+    <td class="err">${esc(p.chargeId || p.error || '')}</td>
+    <td>${new Date(p.createdAt).toLocaleTimeString('vi-VN')}</td></tr>`).join('');
+}
+async function tick() { await Promise.all([refreshStudents(), refreshBank(), refreshPayments()]); }
+
+getJson('/ui/config').then((c) => {
+  $('mode').textContent = c.mode === 'naive' ? 'Chế độ: naive (trước khi sửa)' : 'Chế độ: resilient (đã sửa)';
+  $('bankUrl').textContent = c.bankUrl;
+}).catch(() => {});
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
